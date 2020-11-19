@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+<!-- Based on https://trackingjs.com/docs.html -->
+
+<meta charset="utf-8">
+<title>Program that uses tracking.js to track a particular color with camera</title>
+
+<!-- Must download trackingjs files from https://trackingjs.com and put them where these 'script src=' statements will find them. -->
+<script src="./tracking.js-master/build/tracking-min.js"></script>
+
+<style>
+#video, #canvas {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+#MyCanvas {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+</style>
+
+<script>
+/*
+ * Simple program that uses trackingjs
+ *
+ * Must run on a remote server, and access via https not http.
+ * Must download trackingjs files from https://trackingjs.com and put them where above 'script src=' statements will find them.
+ */
+
+// Just a common code fragment, not a genuine repaint callback,
+// redraws the non-changeable stuff
+function drawBackground () {
+  var c = document.getElementById ("MyCanvas");
+  var gc = c.getContext("2d");
+
+  // Grey background
+  gc.fillStyle = "#EEEEEE";
+  gc.fillRect (0, 0, c.width, c.height);
+}
+
+function doit (x, y) {
+  var c = document.getElementById ("MyCanvas");
+  var gc = c.getContext("2d");
+  gc.fillStyle = "#FF0000";
+  gc.beginPath();
+  gc.arc (x * 2, y * 2, 12, 0, 2.*Math.PI);
+  gc.fill();
+}
+
+window.onload = function() {
+  drawBackground();
+
+  // Define my color
+  tracking.ColorTracker.registerColor('mycolor', function(r, g, b) {
+    return (r >  150 && g > 200 && b < 90)});
+
+  var video = document.getElementById ('video');
+  var canvas = document.getElementById ('canvas');
+  var context = canvas.getContext ('2d');
+  var tracker = new tracking.ColorTracker ('mycolor');
+
+  tracking.track ('#video', tracker, { camera: true });
+
+  tracker.on ('track', function(event) {
+    context.clearRect (0, 0, canvas.width, canvas.height);
+    if (event.data.length === 0) {
+	    document.getElementById("result").innerHTML = "(nothing found)"
+    }
+    else {
+	    document.getElementById("result").innerHTML = ""
+	    for (var rect of event.data) {
+	      document.getElementById ("result").innerHTML += "Found: " + rect.x + ", " + rect.y + "<br/>" 
+        doit(rect.x, rect.y);
+	    }
+    }
+  });
+};
+</script>
+
+</head>
+<body>
+<p>Use <a href="http://trackingjs.com">tracking.js</a> to detect colors</p>
+<div id="result">(nothing found)</div>
+
+<canvas id="MyCanvas" width="400" height="400"></canvas>
+
+<video id="video" width="200" height="200" preload autoplay loop muted></video>
+<canvas id="canvas" width="300" height="300"></canvas>
+
+</body>
+</html>
