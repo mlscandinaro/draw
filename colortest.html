@@ -18,29 +18,41 @@
 <script src="tracking-min.js"></script>
 
 <style>
+#result, #title {
+	font-family: "arial";
+	text-align: center;
+}
+
 #video, #videoCanvas, #drawingCanvas {
 	margin-left: auto;
 	margin-right: auto;
 	display: block;
+	text-align: center;
+}
+
+#video, #drawingCanvas {
+    transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg); /* Safari and Chrome */
+    -moz-transform: rotateY(180deg); /* Firefox */
 }
 </style>
 
 <script>
 // draw grey canvas
-function drawBackground () {
-	var c = document.getElementById ("drawingCanvas");
+function drawBackground() {
+	var c = document.getElementById("drawingCanvas");
 	var gc = c.getContext("2d");
 	gc.fillStyle = "#EEEEEE";
-	gc.fillRect (0, 0, c.width, c.height);
+	gc.fillRect(0, 0, c.width, c.height);
 }
 
 // draw using coordinates from tracking.js
-function draw (x, y) {
-	var c = document.getElementById ("drawingCanvas");
+function draw(x, y) {
+	var c = document.getElementById("drawingCanvas");
 	var gc = c.getContext("2d");
 	gc.fillStyle = "#FF0000";
 	gc.beginPath();
-	gc.arc (x * 2, y * 2, 12, 0, 2.*Math.PI);
+	gc.arc(x * 2 , y * 2, 13, 0, 2.*Math.PI);
 	gc.fill();
 }
 
@@ -51,20 +63,15 @@ window.onload = function() {
 	tracking.ColorTracker.registerColor('customYellow', function(r, g, b) {
 	return (r >  150 && g > 200 && b < 90)});
 
-	var video = document.getElementById ('video');
-	var videoCanvas = document.getElementById ('videoCanvas');
-	var tracker = new tracking.ColorTracker ('customYellow');
+	var video = document.getElementById('video');
+	var videoCanvas = document.getElementById('videoCanvas');
+	var tracker = new tracking.ColorTracker('customYellow');
 	
-	tracking.track ('#video', tracker, { camera: true });
-	tracker.on ('track', function(event) {
-		if (event.data.length === 0) {
-			document.getElementById("result").innerHTML = "(nothing found)"
-		} else {
-			document.getElementById("result").innerHTML = ""
-			for (var rect of event.data) {
-				document.getElementById ("result").innerHTML += "Found: " + rect.x + ", " + rect.y + "<br/>" 
-				draw(rect.x, rect.y);
-			}
+	tracking.track('#video', tracker, {camera: true});
+	tracker.on('track', function(event) {
+		for (var rect of event.data) {
+			document.getElementById("result").innerHTML = "OK!" 
+			draw(rect.x, rect.y);
 		}
 	});
 };
@@ -73,10 +80,12 @@ window.onload = function() {
 </head>
 <body>
 
-<p>using <a href="http://trackingjs.com">tracking.js</a> to detect colored objects</p>
-<div id="result">(no results)</div>
-<canvas id="drawingCanvas" width="400" height="400"></canvas>
-<video id="video" width="200" height="200" preload autoplay loop muted></video>
+<div id="title">Draw</div>
+<br/>
+<div id="result">Stylus not calibrated</div>
+<br/>
+<canvas id="drawingCanvas" width="450" height="400"></canvas>
+<video id="video" width="250" height="250" preload autoplay loop muted></video>
 <canvas id="videoCanvas" width="300" height="300"></canvas>
 
 </body>
