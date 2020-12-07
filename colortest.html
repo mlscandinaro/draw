@@ -1,83 +1,58 @@
 <!-- 
  * colortest.html
  * Mijael Maratuech & Maya Scandinaro
- * Comp86 Nonwimp project
- * 11/20/20
+ * COMP86 Non-WIMP project: "Hands-off Paint"
+ * December, 2020
  * 
  * Based on https://trackingjs.com/docs.html 
  * 
- * NOTE: You must connect to a remote server and have tracking-min.js
- * in your directory to use this application
+ * NOTES: 
+ *      - You must connect to a remote server and have tracking-min.js
+ *      in your directory to use this application. We recommend one of
+ *      two commands: "python -m SimpleHTTPServer" or "python3 -m http.server".
+ *
+ *      - For ease of use, play with interface with a neutral background
+ *     behind you and even lighting.
+ *
+ *      - The three colors allowed for stylus detection, work better if 
+ *      the objects ressemble common Sharpie highlighters!
+ *
 -->
 
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head>
-<meta charset="utf-8">
-<title>comp 86 nonwimp project</title>
-<script src="tracking-min.js"></script>
-
-<style>
-#video, #videoCanvas, #drawingCanvas {
-	margin-left: auto;
-	margin-right: auto;
-	display: block;
-}
-</style>
-
-<script>
-// draw grey canvas
-function drawBackground () {
-	var c = document.getElementById ("drawingCanvas");
-	var gc = c.getContext("2d");
-	gc.fillStyle = "#EEEEEE";
-	gc.fillRect (0, 0, c.width, c.height);
-}
-
-// draw using coordinates from tracking.js
-function draw (x, y) {
-	var c = document.getElementById ("drawingCanvas");
-	var gc = c.getContext("2d");
-	gc.fillStyle = "#FF0000";
-	gc.beginPath();
-	gc.arc (x * 2, y * 2, 12, 0, 2.*Math.PI);
-	gc.fill();
-}
-
-window.onload = function() {
-	drawBackground();
-
-	// register custom color
-	tracking.ColorTracker.registerColor('customYellow', function(r, g, b) {
-	return (r >  150 && g > 200 && b < 90)});
-
-	var video = document.getElementById ('video');
-	var videoCanvas = document.getElementById ('videoCanvas');
-	var tracker = new tracking.ColorTracker ('customYellow');
-	
-	tracking.track ('#video', tracker, { camera: true });
-	tracker.on ('track', function(event) {
-		if (event.data.length === 0) {
-			document.getElementById("result").innerHTML = "(nothing found)"
-		} else {
-			document.getElementById("result").innerHTML = ""
-			for (var rect of event.data) {
-				document.getElementById ("result").innerHTML += "Found: " + rect.x + ", " + rect.y + "<br/>" 
-				draw(rect.x, rect.y);
-			}
-		}
-	});
-};
-</script>
-
-</head>
-<body>
-
-<p>using <a href="http://trackingjs.com">tracking.js</a> to detect colored objects</p>
-<div id="result">(no results)</div>
-<canvas id="drawingCanvas" width="400" height="400"></canvas>
-<video id="video" width="200" height="200" preload autoplay loop muted></video>
-<canvas id="videoCanvas" width="300" height="300"></canvas>
-
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Hands-Off Paint</title>
+    <script src="tracking-min.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="paint.js"></script>
+  </head>
+  <body>
+    <div id="title">Hands-Off Paint 🎨</div>
+    <br />
+    <div id="result">Stylus not calibrated</div>
+    <br />
+    <div id="gridContainer">
+      <canvas id="drawingCanvas" width="450" height="400"></canvas>
+      <div id="controlPanel">
+        <input type="color" id="colorSelector" value="#FF0000" onchange="changeDrawingColor(this)" onkeyup="changeDrawingColor(this)"/>
+        <div id="stylusSelector">
+          <button type="button" id="y" onclick="changeStylusColor(this)">🟡</button>
+          <button type="button" id="g" onclick="changeStylusColor(this)">🟢</button>
+          <button type="button" id="p" onclick="changeStylusColor(this)">🟣</button>
+        </div>
+        <button type="button" id="clearButton" onclick="clearCanvas()">Clear</button>
+      </div>
+      <video
+        id="video"
+        width="250"
+        height="250"
+        preload
+        autoplay
+        loop
+        muted
+      ></video>
+    </div>
+  </body>
 </html>
