@@ -1,10 +1,18 @@
+/*
+ * paint.js
+ * Mijael Maratuech & Maya Scandinaro
+ * COMP86 Non-WIMP project: "Hands-off Paint"
+ * December, 2020
+ */
+
 //global for selector callbacks, initially red
 var drawingColor = "#FF0000";
 
 //globals for color tracking
+var currColor;
 var customYellow = true; // > 200, > 200, < 150
-var customGreen = false; // < 190, > 200, < 145
-var customPurple = false; // > 200, < 120, 100<x<200
+var customGreen = false; // < 140, > 160, 40 < x < 145
+var customPurple = false; // 60 < x < 140, < 120, 100 < x < 160
 
 // draw grey canvas
 function drawBackground() {
@@ -31,6 +39,7 @@ function changeStylusColor(e) {
       customYellow = true;
       customGreen = false;
       customPurple = false;
+      currColor = 'customYellow';
       console.log('tracking y')
       trackColor();
       break;
@@ -38,6 +47,7 @@ function changeStylusColor(e) {
       customGreen = true;
       customYellow = false;
       customPurple = false
+      currColor = 'customGreen';
       console.log('tracking g');
       trackColor();
       break;
@@ -45,6 +55,7 @@ function changeStylusColor(e) {
       customPurple = true;
       customYellow = false;
       customGreen = false;
+      currColor = 'customPurple';
       trackColor();
       console.log('tracking p');
       break;
@@ -53,34 +64,45 @@ function changeStylusColor(e) {
 
 // sets color tracking
 function trackColor() {
-  var tracker = setTracker();
+
+  // register all colors
+  tracking.ColorTracker.registerColor("customYellow", function (r, g, b) {
+      return r > 200 && g > 200 && b < 150;
+    });
+  tracking.ColorTracker.registerColor("customGreen", function (r, g, b) {
+      return r < 140 && g > 160 && b < 145 && b > 40;
+    });
+  tracking.ColorTracker.registerColor("customPurple", function (r, g, b) {
+      return r > 60 && r < 140 && g < 120 && b > 100 & b < 160;
+    });
+
+  var tracker;
+  var myColor;
+
+  // set tracker to detect only one color
+  if (customYellow) {
+    tracker = new tracking.ColorTracker('customYellow');
+    myColor = 'customYellow';
+  } else if (customGreen) {
+    tracker = new tracking.ColorTracker('customGreen');
+    myColor = 'customGreen';
+  } else {
+    tracker = new tracking.ColorTracker('customPurple');
+    myColor = 'customPurple';
+  }
+
   var video = document.getElementById("video");
   tracking.track("#video", tracker, { camera: true });
   tracker.on("track", function (event) {
+    document.getElementById("result").innerHTML = "Stylus not calibrated";
     for (var rect of event.data) {
+      if (myColor != currColor) {
+        return;
+      }
       document.getElementById("result").innerHTML = "OK!";
       draw(rect.x, rect.y, drawingColor);
     }
   });
-}
-
-// color tracking utility func
-function setTracker() {
-  if (customYellow) {
-    tracking.ColorTracker.registerColor("customYellow", function (r, g, b) {
-      return r > 200 && g > 200 && b < 150;
-    });
-    return (new tracking.ColorTracker("customYellow"));
-  } else if (customGreen) {
-    tracking.ColorTracker.registerColor("customGreen", function (r, g, b) {
-      return r < 190 && g > 200 && b < 145;
-    });
-    return (new tracking.ColorTracker("customGreen"));
-  } 
-    tracking.ColorTracker.registerColor("customPurple", function (r, g, b) {
-      return r > 200 && g < 120 && b > 100 & b < 200;
-    });
-    return (new tracking.ColorTracker("customPurple"));
 }
 
 // draw using coordinates from tracking.js
@@ -93,7 +115,7 @@ function draw(x, y, drawingColor) {
   gc.fill();
 }
 
-//onload: set up canvas, set stylus color tracker (initially yellow)
+//onload: set up canvas, user sets stylus color tracker
 window.onload = function () {
   drawBackground();
   trackColor();
